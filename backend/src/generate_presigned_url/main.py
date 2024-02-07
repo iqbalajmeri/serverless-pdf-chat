@@ -50,7 +50,9 @@ def lambda_handler(event, context):
         base_name, extension = os.path.splitext(file_name_full)
         key = f"{user_id}/{base_name}-{suffix}{extension}/{base_name}-{suffix}{extension}"
     else:
-        key = f"{user_id}/{file_name}.pdf/{file_name}.pdf"
+        key = f"{user_id}/{file_name}{extension}/{file_name}.{extension}"
+
+    print(key)
 
     presigned_url = s3.generate_presigned_url(
         ClientMethod="put_object",

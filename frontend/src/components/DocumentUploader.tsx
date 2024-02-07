@@ -16,7 +16,7 @@ const DocumentUploader: React.FC = () => {
 
   useEffect(() => {
     if (selectedFile) {
-      if (selectedFile.type === "application/pdf") {
+      if (selectedFile.type === "application/pdf" || selectedFile.type === "text/csv") {
         setInputStatus("valid");
       } else {
         setSelectedFile(null);
@@ -30,6 +30,7 @@ const DocumentUploader: React.FC = () => {
   };
 
   const uploadFile = async () => {
+    const fileType = selectedFile.type;
     setButtonStatus("uploading");
     await API.get("serverless-pdf-chat", "/generate_presigned_url", {
       headers: { "Content-Type": "application/json" },
@@ -40,7 +41,7 @@ const DocumentUploader: React.FC = () => {
       fetch(presigned_url.presignedurl, {
         method: "PUT",
         body: selectedFile,
-        headers: { "Content-Type": "application/pdf" },
+        headers: { "Content-Type": fileType },
       }).then(() => {
         setButtonStatus("success");
       });
@@ -69,7 +70,7 @@ const DocumentUploader: React.FC = () => {
                 <span className="font-semibold">Click to upload</span> your
                 document
               </p>
-              <p className="text-xs text-gray-500">Only .pdf accepted</p>
+              <p className="text-xs text-gray-500">Only .pdf/ .csv accepted</p>
             </div>
 
             <input

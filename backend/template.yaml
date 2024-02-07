@@ -37,7 +37,7 @@ Resources:
   DocumentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-v1"
+      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -227,7 +227,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MemoryTable
         - S3ReadPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-v1*"
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt EmbeddingQueue.QueueName
       Environment:
@@ -235,7 +235,7 @@ Resources:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
           QUEUE: !GetAtt EmbeddingQueue.QueueName
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-v1"
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
       Events:
         S3Event:
           Type: S3
@@ -439,6 +439,7 @@ Resources:
               phases:
                 preBuild:
                   commands:
+                    - npm install
                     - npm ci
                 build:
                   commands:
@@ -451,7 +452,7 @@ Resources:
                 paths:
                   - node_modules/**/*
             appRoot: frontend
-      AccessToken: "{{resolve:secretsmanager:serverless-pdf-chat-github-token}}"
+      AccessToken: "{{resolve:secretsmanager:devdocchat1}}"
       EnvironmentVariables:
         - Name: AMPLIFY_MONOREPO_APP_ROOT
           Value: frontend
