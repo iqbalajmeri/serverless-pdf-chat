@@ -37,7 +37,7 @@ Resources:
   DocumentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
+      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -227,7 +227,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MemoryTable
         - S3ReadPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt EmbeddingQueue.QueueName
       Environment:
@@ -235,9 +235,9 @@ Resources:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
           QUEUE: !GetAtt EmbeddingQueue.QueueName
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       Events:
-        S3Event:
+        S3EventPdf:
           Type: S3
           Properties:
             Bucket: !Ref DocumentBucket
@@ -247,7 +247,18 @@ Resources:
               S3Key:
                 Rules:
                   - Name: suffix
-                    Value: .pdf,.csv 
+                    Value: .pdf
+        S3EventCsv:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentBucket
+            Events:
+              - s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: .csv
 
   MondayUploadTriggerFunction:
     Type: AWS::Serverless::Function
@@ -440,7 +451,6 @@ Resources:
                 preBuild:
                   commands:
                     - npm install
-                    - npm ci
                 build:
                   commands:
                     - npm run build
