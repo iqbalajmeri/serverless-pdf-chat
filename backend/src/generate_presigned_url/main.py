@@ -50,7 +50,7 @@ def lambda_handler(event, context):
         base_name, extension = os.path.splitext(file_name_full)
         key = f"{user_id}/{base_name}-{suffix}{extension}/{base_name}-{suffix}{extension}"
     else:
-        key = f"{user_id}/{file_name}{extension}/{file_name}.{extension}"
+        key = f"{user_id}/{file_name}{extension}/{file_name}{extension}"
 
     print(key)
 
