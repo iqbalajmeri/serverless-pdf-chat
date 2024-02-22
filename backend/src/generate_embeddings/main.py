@@ -5,6 +5,9 @@ from langchain.embeddings import BedrockEmbeddings
 from langchain.document_loaders import PyPDFLoader
 from langchain.indexes import VectorstoreIndexCreator
 from langchain.vectorstores import FAISS
+from langchain_community.document_loaders.csv_loader import CSVLoader
+from langchain.document_loaders import Docx2txtLoader
+from langchain.document_loaders import TextLoader
 
 
 DOCUMENT_TABLE = os.environ["DOCUMENT_TABLE"]
@@ -35,8 +38,21 @@ def lambda_handler(event, context):
     set_doc_status(user_id, document_id, "PROCESSING")
 
     s3.download_file(BUCKET, key, f"/tmp/{file_name_full}")
+    print("file_name_full", file_name_full)
+    file_extension = os.path.splitext(file_name_full)[1].lower()
 
-    loader = PyPDFLoader(f"/tmp/{file_name_full}")
+    if file_extension == ".pdf":
+        loader = PyPDFLoader(f"/tmp/{file_name_full}")
+    elif file_extension == ".csv":
+        loader = CSVLoader(file_path=f"/tmp/{file_name_full}")
+    elif file_extension == ".doc" or file_extension == ".docx" :
+        loader = Docx2txtLoader(file_path=f"/tmp/{file_name_full}")
+    elif file_extension == ".txt":
+        loader = TextLoader(file_path=f"/tmp/{file_name_full}")
+    else:
+        raise ValueError(f"Unsupported file type: {file_extension}")
+
+    # loader = PyPDFLoader(f"/tmp/{file_name_full}")
 
     bedrock_runtime = boto3.client(
         service_name="bedrock-runtime",

@@ -16,38 +16,51 @@ const DocumentUploader: React.FC = () => {
 
   useEffect(() => {
     if (selectedFile) {
-      if (selectedFile.type === "application/pdf" || selectedFile.type === "text/csv") {
+      const fileType = selectedFile.type;
+      const allowedTypes = ["application/pdf", "text/csv", "text/plain", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+      if (allowedTypes.includes(fileType)) {
+      // if (fileType === "application/pdf" || fileType === "text/csv") {
         setInputStatus("valid");
       } else {
         setSelectedFile(null);
       }
     }
   }, [selectedFile]);
-
+  
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setSelectedFile(file || null);
   };
-
+  
   const uploadFile = async () => {
-    const fileType = selectedFile.type;
     setButtonStatus("uploading");
-    await API.get("serverless-pdf-chat", "/generate_presigned_url", {
-      headers: { "Content-Type": "application/json" },
-      queryStringParameters: {
-        file_name: selectedFile?.name,
-      },
-    }).then((presigned_url) => {
-      fetch(presigned_url.presignedurl, {
-        method: "PUT",
-        body: selectedFile,
-        headers: { "Content-Type": fileType },
-      }).then(() => {
-        setButtonStatus("success");
+  
+    if (selectedFile) {
+         const contentType =
+           selectedFile.type === "application/pdf" ? "application/pdf" :
+           selectedFile.type === "text/csv" ? "text/csv" :
+           selectedFile.type === "text/plain" ? "text/plain" :
+           selectedFile.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "";
+      // const contentType =
+      //   selectedFile.type === "application/pdf" ? "application/pdf" : "text/csv";
+  
+      await API.get("serverless-pdf-chat", "/generate_presigned_url", {
+        headers: { "Content-Type": "application/json" },
+        queryStringParameters: {
+          file_name: selectedFile?.name,
+        },
+      }).then((presigned_url) => {
+        fetch(presigned_url.presignedurl, {
+          method: "PUT",
+          body: selectedFile,
+          headers: { "Content-Type": contentType },
+        }).then(() => {
+          setButtonStatus("success");
+        });
       });
-    });
+    } // Add this closing bracket
   };
-
+  
   const resetInput = () => {
     setSelectedFile(null);
     setInputStatus("idle");
@@ -70,13 +83,14 @@ const DocumentUploader: React.FC = () => {
                 <span className="font-semibold">Click to upload</span> your
                 document
               </p>
-              <p className="text-xs text-gray-500">Only .pdf/ .csv accepted</p>
+              <p className="text-xs text-gray-500">Only .pdf , .csv , .txt , .docx accepted</p>
             </div>
 
             <input
               onChange={handleFileChange}
               id="dropzone-file"
               type="file"
+              accept=".pdf, .csv, .txt, .docx,"
               className="hidden"
             />
           </label>
