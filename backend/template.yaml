@@ -354,7 +354,7 @@ Resources:
           Properties:
             RestApiId: !Ref Api
             Path: /Delete_Full
-            Method: delete         
+            Method: delete
 
   GetDocumentFunction:
     Type: AWS::Serverless::Function
