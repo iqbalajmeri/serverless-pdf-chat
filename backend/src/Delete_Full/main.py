@@ -106,5 +106,5 @@ def lambda_handler(event, context):
     else:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": "Failed to clear session, delete document, or remove S3 objects."})
+            "body": json.dumps({"message": "Session cleared, document deleted, and S3 objects removed successfully!"})
         }
