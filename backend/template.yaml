@@ -37,7 +37,7 @@ Resources:
   DocumentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
+      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -216,6 +216,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /generate_presigned_url
             Method: GET
+
   UploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -226,7 +227,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MemoryTable
         - S3ReadPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt EmbeddingQueue.QueueName
       Environment:
@@ -234,7 +235,7 @@ Resources:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
           QUEUE: !GetAtt EmbeddingQueue.QueueName
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       Events:
         S3EventPdf:
           Type: S3
@@ -258,28 +259,6 @@ Resources:
                 Rules:
                   - Name: suffix
                     Value: .csv
-        S3Eventtxt:
-          Type: S3
-          Properties:
-            Bucket: !Ref DocumentBucket
-            Events:
-              - s3:ObjectCreated:*
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: .txt
-        S3Eventdocx:
-          Type: S3
-          Properties:
-            Bucket: !Ref DocumentBucket
-            Events:
-              - s3:ObjectCreated:*
-            Filter:
-              S3Key:
-                Rules:
-                  - Name: suffix
-                    Value: .docx
 
   MondayUploadTriggerFunction:
     Type: AWS::Serverless::Function
@@ -291,7 +270,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MemoryTable
         - S3ReadPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt 2Queue.QueueName
       Environment:
@@ -299,7 +278,7 @@ Resources:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
           QUEUE: !GetAtt 2Queue.QueueName
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       Events:
         Root:
           Type: Api
@@ -307,53 +286,8 @@ Resources:
             RestApiId: !Ref Api
             Path: /Monday_upload_trigger
             Method: POST
-  
-  DeleteHistoryTriggerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/Delete_History/
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref DocumentTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref MemoryTable
-      Environment:
-        Variables:
-          DOCUMENT_TABLE: !Ref DocumentTable
-          MEMORY_TABLE: !Ref MemoryTable
-      Events:
-        Root:
-          Type: Api
-          Properties:
-            RestApiId: !Ref Api
-            Path: /Delete_History
-            Method: Delete
-
-  DeleteFullTriggerFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/Delete_Full/
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref DocumentTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref MemoryTable
-        - S3CrudPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
-            Actions:
-              - s3:DeleteObject
-      Environment:
-        Variables:
-          DOCUMENT_TABLE: !Ref DocumentTable
-          MEMORY_TABLE: !Ref MemoryTable
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
-      Events:
-        Root:
-          Type: Api
-          Properties:
-            RestApiId: !Ref Api
-            Path: /Delete_Full
-            Method: delete
+        
+           
 
   GetDocumentFunction:
     Type: AWS::Serverless::Function
@@ -528,7 +462,7 @@ Resources:
                 paths:
                   - node_modules/**/*
             appRoot: frontend
-      AccessToken: "{{resolve:secretsmanager:devdocchat1}}"
+      AccessToken: "{{resolve:secretsmanager:serverless-pdf-chat-github-token}}"
       EnvironmentVariables:
         - Name: AMPLIFY_MONOREPO_APP_ROOT
           Value: frontend
@@ -545,7 +479,7 @@ Resources:
     Type: AWS::Amplify::Branch
     Condition: DeployToAmplifyHosting
     Properties:
-      BranchName: dev_feature_v2
+      BranchName: feature_v1
       AppId: !GetAtt AmplifyApp.AppId
       EnableAutoBuild: true
 
