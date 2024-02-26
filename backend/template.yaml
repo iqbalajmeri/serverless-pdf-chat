@@ -37,7 +37,7 @@ Resources:
   DocumentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
+      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -216,7 +216,6 @@ Resources:
             RestApiId: !Ref Api
             Path: /generate_presigned_url
             Method: GET
-
   UploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -227,7 +226,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MemoryTable
         - S3ReadPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt EmbeddingQueue.QueueName
       Environment:
@@ -235,7 +234,7 @@ Resources:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
           QUEUE: !GetAtt EmbeddingQueue.QueueName
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
       Events:
         S3EventPdf:
           Type: S3
@@ -292,7 +291,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MemoryTable
         - S3ReadPolicy:
-            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt 2Queue.QueueName
       Environment:
@@ -300,7 +299,7 @@ Resources:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
           QUEUE: !GetAtt 2Queue.QueueName
-          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
       Events:
         Root:
           Type: Api
@@ -308,7 +307,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Monday_upload_trigger
             Method: POST
-       
+  
   DeleteHistoryTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -529,7 +528,7 @@ Resources:
                 paths:
                   - node_modules/**/*
             appRoot: frontend
-      AccessToken: "{{resolve:secretsmanager:serverless-pdf-chat-github-token}}"
+      AccessToken: "{{resolve:secretsmanager:devdocchat1}}"
       EnvironmentVariables:
         - Name: AMPLIFY_MONOREPO_APP_ROOT
           Value: frontend
@@ -546,7 +545,7 @@ Resources:
     Type: AWS::Amplify::Branch
     Condition: DeployToAmplifyHosting
     Properties:
-      BranchName: feature_v1
+      BranchName: dev_feature_v2
       AppId: !GetAtt AmplifyApp.AppId
       EnableAutoBuild: true
 

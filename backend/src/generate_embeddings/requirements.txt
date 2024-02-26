@@ -6,3 +6,4 @@ pypdf==3.17.0
 urllib3
 langchain-community==0.0.16
 docx2txt
+

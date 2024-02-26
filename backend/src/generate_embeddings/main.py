@@ -38,6 +38,7 @@ def lambda_handler(event, context):
     set_doc_status(user_id, document_id, "PROCESSING")
 
     s3.download_file(BUCKET, key, f"/tmp/{file_name_full}")
+
     print("file_name_full", file_name_full)
     file_extension = os.path.splitext(file_name_full)[1].lower()
 

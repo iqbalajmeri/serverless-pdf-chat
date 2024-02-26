@@ -29,6 +29,7 @@ def lambda_handler(event, context):
 
     print("file name " , file_name)
     print("key " , key)
+
     document_id = shortuuid.uuid()
 
     s3.download_file(BUCKET, key, f"/tmp/{file_name}")

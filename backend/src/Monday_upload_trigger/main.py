@@ -22,6 +22,7 @@ if "2Queue" in queue_name:
     print(f"Set QUEUE variable to: {queue_name}")
 else:
     print("The environment variable QUEUE does not contain '2Queue'")
+
 QUEUE = queue_name
 print(QUEUE)
 
