@@ -5,20 +5,19 @@ import { Conversation } from "../common/types";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatMessages from "../components/ChatMessages";
 import LoadingGrid from "../../public/loading-grid.svg";
- 
+
 const Document: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();
-  // console.log("params", params)
- 
-  const [conversation, setConversation] = useState < Conversation | null > (null);
-  const [loading, setLoading] = React.useState < string > ("idle");
-  const [messageStatus, setMessageStatus] = useState < string > ("idle");
-  const [conversationListStatus, setConversationListStatus] = useState <
+
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const [loading, setLoading] = React.useState<string>("idle");
+  const [messageStatus, setMessageStatus] = useState<string>("idle");
+  const [conversationListStatus, setConversationListStatus] = useState<
     "idle" | "loading"
-    > ("idle");
+  >("idle");
   const [prompt, setPrompt] = useState("");
- 
+
   const fetchData = async (conversationid = params.conversationid) => {
     setLoading("loading");
     const conversation = await API.get(
@@ -29,15 +28,15 @@ const Document: React.FC = () => {
     setConversation(conversation);
     setLoading("idle");
   };
- 
+
   useEffect(() => {
     fetchData();
   }, []);
- 
+
   const handlePromptChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPrompt(event.target.value);
   };
- 
+
   const addConversation = async () => {
     setConversationListStatus("loading");
     const newConversation = await API.post(
@@ -49,22 +48,22 @@ const Document: React.FC = () => {
     navigate(`/doc/${params.documentid}/${newConversation.conversationid}`);
     setConversationListStatus("idle");
   };
- 
+
   const switchConversation = (e: React.MouseEvent<HTMLButtonElement>) => {
     const targetButton = e.target as HTMLButtonElement;
     navigate(`/doc/${params.documentid}/${targetButton.id}`);
     fetchData(targetButton.id);
   };
- 
+
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key == "Enter") {
       submitMessage();
     }
   };
- 
+
   const submitMessage = async () => {
     setMessageStatus("loading");
- 
+
     if (conversation !== null) {
       const previewMessage = {
         type: "text",
@@ -74,15 +73,15 @@ const Document: React.FC = () => {
           example: false,
         },
       };
- 
+
       const updatedConversation = {
         ...conversation,
         messages: [...conversation.messages, previewMessage],
       };
- 
+
       setConversation(updatedConversation);
     }
- 
+
     await API.post(
       "serverless-pdf-chat",
       `/${conversation?.document.documentid}/${conversation?.conversationid}`,
@@ -97,31 +96,7 @@ const Document: React.FC = () => {
     fetchData(conversation?.conversationid);
     setMessageStatus("idle");
   };
- 
-  const handleDeleteChatHistory = async () => {
-    console.log("func called")
-    alert("do you want to delet your chat history")
-    const deletHistory = async (conversationid = params.conversationid) => {
-      // console.log("conversation id inside", conversationid)
-      try {
-        const response = await API.del(
-          'serverless-pdf-chat',
-          '/Delete_History',
-          {
-            body: {
-              conversation_ids: [params.conversationid],
-            },
-          }
-        );
-        console.log('Delete request successful', response);
-        fetchData();
-      } catch (error) {
-        console.error('Error during delete request:', error);
-      }
-    };
-    deletHistory();
-  };
- 
+
   return (
     <div className="">
       {loading === "loading" && !conversation && (
@@ -137,7 +112,6 @@ const Document: React.FC = () => {
             addConversation={addConversation}
             switchConversation={switchConversation}
             conversationListStatus={conversationListStatus}
-            handleDeleteChatHistory={handleDeleteChatHistory}
           />
           <ChatMessages
             prompt={prompt}
@@ -152,5 +126,5 @@ const Document: React.FC = () => {
     </div>
   );
 };
- 
+
 export default Document;

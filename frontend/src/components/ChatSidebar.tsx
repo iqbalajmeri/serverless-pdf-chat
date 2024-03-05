@@ -2,30 +2,26 @@ import DocumentDetail from "./DocumentDetail";
 import { Conversation } from "../common/types";
 import { getDateTime } from "../common/utilities";
 import { Params } from "react-router-dom";
-import { FiTrash2 } from "react-icons/fi";
 import {
   ChatBubbleLeftRightIcon,
   PlusCircleIcon,
 } from "@heroicons/react/24/outline";
- 
+
 interface ChatSidebarProps {
   conversation: Conversation;
   params: Params;
-  handleDeleteChatHistory: () => Promise<void>;
   addConversation: () => Promise<void>;
   switchConversation: (e: React.MouseEvent<HTMLButtonElement>) => void;
   conversationListStatus: "idle" | "loading";
 }
- 
+
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
   conversation,
   params,
   addConversation,
   switchConversation,
   conversationListStatus,
-  handleDeleteChatHistory,
 }) => {
- 
   return (
     <div className="col-span-4 h-full">
       <div className="bg-gray-100 p-5">
@@ -33,7 +29,6 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         <DocumentDetail
           {...conversation.document}
           handleDeletFull={() => { }}
-          handleViewFile = {()=> { } }
         />
       </div>
       <div className="px-3 pt-3 pb-5">
@@ -74,43 +69,30 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         )}
         {conversation &&
           conversation.document.conversations.map((conversation, i) => (
-            <div key={i}
-            >
+            <div key={i}>
               {params.conversationid === conversation.conversationid && (
-                <div className="flex">
-                  <button
-                    disabled={
-                      params.conversationid === conversation.conversationid
-                    }
-                    className="bg-gray-500 text-white w-full inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded"
-                  >
-                    <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
-                    {getDateTime(conversation.created)}
-                  </button>
-                  <button
-                    className="bg-gray-500 text-white inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded"
-                  >
-                    <FiTrash2
-                      className="text-white"
-                      onClick={handleDeleteChatHistory}
-                    />
-                  </button>
-                </div>
+                <button
+                  disabled={
+                    params.conversationid === conversation.conversationid
+                  }
+                  className="bg-gray-500 text-white w-full inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded"
+                >
+                  <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
+                  {getDateTime(conversation.created)}
+                </button>
               )}
               {params.conversationid !== conversation.conversationid && (
-                <div className="flex">
-                  <button
-                    id={conversation.conversationid}
-                    onClick={switchConversation}
-                    disabled={
-                      params.conversationid === conversation.conversationid
-                    }
-                    className="bg-gray-50 w-full inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded hover:bg-gray-200"
-                  >
-                    <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
-                    {getDateTime(conversation.created)}
-                  </button>
-                </div>
+                <button
+                  id={conversation.conversationid}
+                  onClick={switchConversation}
+                  disabled={
+                    params.conversationid === conversation.conversationid
+                  }
+                  className="bg-gray-50 w-full inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded hover:bg-gray-200"
+                >
+                  <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
+                  {getDateTime(conversation.created)}
+                </button>
               )}
             </div>
           ))}
@@ -118,5 +100,5 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
     </div>
   );
 };
- 
+
 export default ChatSidebar;
