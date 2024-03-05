@@ -34,6 +34,8 @@ def lambda_handler(event, context):
 
     s3.download_file(BUCKET, key, f"/tmp/{file_name}")
 
+    s3_object_url = f"{file_name}"
+
     # with open(f"/tmp/{file_name}", "rb") as f:
     #     reader = PyPDF2.PdfReader(f)
     #     pages = str(len(reader.pages))
@@ -52,6 +54,7 @@ def lambda_handler(event, context):
         "filesize": str(event["Records"][0]["s3"]["object"]["size"]),
         "docstatus": "UPLOADED",
         "conversations": [],
+        "s3_object_url": s3_object_url 
     }
 
     conversation = {"conversationid": conversation_id, "created": timestamp_str}
