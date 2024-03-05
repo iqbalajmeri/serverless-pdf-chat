@@ -108,15 +108,13 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": "false"
-          - Sid: Stmt1709196849531
+          - Sid: AllowCloudFrontOAI
             Effect: Allow
-            Principal: "*"
+            Principal:
+              AWS: !GetAtt MyOAI.S3CanonicalUserId
             Action: "s3:GetObject"
             Resource:
               - !Sub "arn:aws:s3:::${DocumentBucket}/*"
-            Condition:
-              StringLike:
-                aws:Referer: "${MyCloudFrontDistribution.DomainName}"
       Bucket: !Ref DocumentBucket
               
   EmbeddingQueue:
