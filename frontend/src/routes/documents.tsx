@@ -23,7 +23,7 @@ const Documents: React.FC = () => {
         <div className="modal_exi absolute inset-0 flex items-center justify-center">
           <div className="modal-content_exi bg-white p-4 rounded shadow-lg">
             <button
-              onClick={() => setShowModal(false)}
+              onClick={() => handleViewFile(`${document.userid}/${document.filename}`)}
               className='bg-blue-500 text-white py-2 px-4 mb-2 rounded-sm'
             ><RxCross1 /></button>
             <iframe src={fileToView} width="100%" height="600px" />
