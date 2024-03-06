@@ -9,8 +9,9 @@ const Documents: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
 
   const handleViewFile = (url: string) => {
-    console.log("Viewing file with URL:", url);
-    const googleDocsViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
+    const formattedUrl = url.replace(/ /g, '+');
+    console.log("Viewing file with URL:", formattedUrl);
+    const googleDocsViewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(formattedUrl)}&embedded=true`;
     setFileToView(googleDocsViewerUrl);
     setShowModal(true);
   };
