@@ -37,7 +37,7 @@ Resources:
   DocumentBucket:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}-jyoti"
+      BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
@@ -51,10 +51,10 @@ Resources:
             AllowedOrigins:
               - "*"
       PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   MyOAI:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
@@ -94,6 +94,7 @@ Resources:
   DocumentBucketPolicy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
+      Bucket: !Ref DocumentBucket  # Add this line to specify the bucket for the policy
       PolicyDocument:
         Id: EnforceHttpsPolicy
         Version: "2012-10-17"
@@ -108,14 +109,13 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": "false"
-          - Sid: AllowCloudFrontOAI
+          - Sid: AllowCloudFrontAccess
             Effect: Allow
-            Principal:
-              AWS: !GetAtt MyOAI.S3CanonicalUserId
+            Principal: 
+              CanonicalUser: !GetAtt MyOAI.S3CanonicalUserId
             Action: "s3:GetObject"
             Resource:
               - !Sub "arn:aws:s3:::${DocumentBucket}/*"
-      Bucket: !Ref DocumentBucket
               
   EmbeddingQueue:
     Type: AWS::SQS::Queue
