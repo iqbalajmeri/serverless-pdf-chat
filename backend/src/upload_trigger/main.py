@@ -34,7 +34,7 @@ def lambda_handler(event, context):
 
     document_id = shortuuid.uuid()
 
-    s3.download_file(BUCKET, key, f"/tmp/{file_name}")
+    # s3.download_file(BUCKET, key, f"/tmp/{file_name}")
 
     s3_object_url = f"{user_id}/{file_name_encoded}/{file_name_encoded}"
 
