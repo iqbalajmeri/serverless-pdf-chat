@@ -13,8 +13,7 @@ import {
   CloudIcon,
   CogIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect } from "react";
- 
+import { useEffect, useState } from "react";
 
  
 const DocumentDetail: React.FC<Document & { handleDeletFull: (documentId: string, conversationIds: string[]) => void, handleViewFile: (url: string) => void }> = ({ handleDeletFull, handleViewFile, ...document }) => {
