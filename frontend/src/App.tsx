@@ -42,6 +42,8 @@ function App(): JSX.Element {
   const [context, setContext] = useState<any | null>(null);
 
   useEffect(() => {
+    const cloudfront = import.meta.env.VITE_CLOUDFRONT_DISTRIBUTION;
+    localStorage.setItem('cloudFrontUrl', cloudfront);
     monday.execute("valueCreatedForUser");
     monday.listen("context", (res) => {
       setContext(res.data);
