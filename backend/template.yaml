@@ -590,7 +590,7 @@ Resources:
     Type: AWS::Amplify::Branch
     Condition: DeployToAmplifyHosting
     Properties:
-      BranchName: main
+      BranchName: feature_v2
       AppId: !GetAtt AmplifyApp.AppId
       EnableAutoBuild: true
 
