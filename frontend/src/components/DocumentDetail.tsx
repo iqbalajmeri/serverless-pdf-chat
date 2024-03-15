@@ -13,13 +13,18 @@ import {
   CloudIcon,
   CogIcon,
 } from "@heroicons/react/24/outline";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
  
- 
- 
-const DocumentDetail: React.FC<Document & { handleDeletFull: (documentId: string, conversationIds: string[]) => void }> = ({ handleDeletFull, ...document }) => {
+const DocumentDetail: React.FC<Document & { handleDeletFull: (documentId: string, conversationIds: string[]) => void, handleViewFile: (url: string) => void }> = ({ handleDeletFull, handleViewFile, ...document }) => {
+  const [endpointUrl, setEndpointUrl] = useState < string | null > (null);
   // console.log("document", document)
  
+  useEffect(() => {
+    const urlFromStorage = localStorage.getItem('cloudFrontUrl');
+    setEndpointUrl(urlFromStorage);
+  }, []);
+  
   useEffect(() => {
   }, [document])
  
@@ -70,9 +75,16 @@ const DocumentDetail: React.FC<Document & { handleDeletFull: (documentId: string
                 Delete File
               </p>
             </div>
-            {/* <div className="menu-item py-1 px-2">
-              <p className="text-sm ">Delete File</p>
-            </div> */}
+            {document.s3_object_url && (
+              <div className="menu-item py-1 px-2">
+                <p
+                  className="text-sm"
+                  onClick={() => handleViewFile(`https://${endpointUrl}/${document.userid}/${document.filename}/${document.filename}`)}
+                >
+                  View File
+                </p>
+              </div>
+            )}
           </div>
         </Popup>
       </div>

@@ -27,12 +27,16 @@ def lambda_handler(event, context):
     user_id = split[0]
     file_name = split[1]
 
+    file_name_encoded = file_name.replace(" ", "+")
+
     print("file name " , file_name)
     print("key " , key)
 
     document_id = shortuuid.uuid()
 
-    s3.download_file(BUCKET, key, f"/tmp/{file_name}")
+    # s3.download_file(BUCKET, key, f"/tmp/{file_name}")
+
+    s3_object_url = f"{user_id}/{file_name_encoded}/{file_name_encoded}"
 
     # with open(f"/tmp/{file_name}", "rb") as f:
     #     reader = PyPDF2.PdfReader(f)
@@ -52,6 +56,7 @@ def lambda_handler(event, context):
         "filesize": str(event["Records"][0]["s3"]["object"]["size"]),
         "docstatus": "UPLOADED",
         "conversations": [],
+        "s3_object_url": s3_object_url 
     }
 
     conversation = {"conversationid": conversation_id, "created": timestamp_str}

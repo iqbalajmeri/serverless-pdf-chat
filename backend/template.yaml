@@ -56,9 +56,45 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  MyOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: "OAI for accessing S3 content via CloudFront"
+
+  MyCloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt DocumentBucket.DomainName
+            Id: MyS3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${MyOAI}"
+        Enabled: true
+        DefaultRootObject: index.html
+        DefaultCacheBehavior:
+          TargetOriginId: MyS3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+            Headers:
+              - Referer
+
   DocumentBucketPolicy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
+      Bucket: !Ref DocumentBucket  # Add this line to specify the bucket for the policy
       PolicyDocument:
         Id: EnforceHttpsPolicy
         Version: "2012-10-17"
@@ -73,8 +109,14 @@ Resources:
             Condition:
               Bool:
                 "aws:SecureTransport": "false"
-      Bucket: !Ref DocumentBucket
-
+          - Sid: AllowCloudFrontAccess
+            Effect: Allow
+            Principal: 
+              CanonicalUser: !GetAtt MyOAI.S3CanonicalUserId
+            Action: "s3:GetObject"
+            Resource:
+              - !Sub "arn:aws:s3:::${DocumentBucket}/*"
+              
   EmbeddingQueue:
     Type: AWS::SQS::Queue
     DeletionPolicy: Delete
@@ -216,6 +258,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /generate_presigned_url
             Method: GET
+
   UploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -540,12 +583,14 @@ Resources:
           Value: !Ref CognitoUserPool
         - Name: VITE_USER_POOL_CLIENT_ID
           Value: !Ref CognitoUserPoolClient
+        - Name: VITE_CLOUDFRONT_DISTRIBUTION
+          Value: !GetAtt MyCloudFrontDistribution.DomainName
 
   AmplifyBranch:
     Type: AWS::Amplify::Branch
     Condition: DeployToAmplifyHosting
     Properties:
-      BranchName: feature_v1
+      BranchName: new_feature_v1
       AppId: !GetAtt AmplifyApp.AppId
       EnableAutoBuild: true
 
@@ -556,3 +601,7 @@ Outputs:
     Value: !Ref CognitoUserPoolClient
   ApiGatewayBaseUrl:
     Value: !Sub "https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/"
+  AmplifyAppId:
+    Value: !GetAtt AmplifyApp.AppId
+  CloudFrontDistributionDomain:
+    Value: !GetAtt MyCloudFrontDistribution.DomainName
