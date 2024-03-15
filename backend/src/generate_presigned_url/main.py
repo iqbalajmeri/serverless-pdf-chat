@@ -31,7 +31,7 @@ def s3_key_exists(bucket, key):
 def lambda_handler(event, context):
     user_id = event["requestContext"]["authorizer"]["claims"]["sub"]
     file_name_full = event["queryStringParameters"]["file_name"]
-    file_name = file_name_full.split(".pdf")[0]
+    file_name, extension = os.path.splitext(file_name_full)
 
     exists = s3_key_exists(BUCKET, f"{user_id}/{file_name_full}/{file_name_full}")
 
@@ -46,16 +46,34 @@ def lambda_handler(event, context):
 
     if exists:
         suffix = shortuuid.ShortUUID().random(length=4)
-        key = f"{user_id}/{file_name}-{suffix}.pdf/{file_name}-{suffix}.pdf"
+        # Separate the filename and extension for CSV file
+        base_name, extension = os.path.splitext(file_name_full)
+        key = f"{user_id}/{base_name}-{suffix}{extension}/{base_name}-{suffix}{extension}"
     else:
-        key = f"{user_id}/{file_name}.pdf/{file_name}.pdf"
+        key = f"{user_id}/{file_name}{extension}/{file_name}{extension}"
+
+    print("key after condition" , key)
+
+
+    if extension.lower() == ".pdf":
+        content_type = "application/pdf"
+    elif extension.lower() == ".csv":
+        content_type = "text/csv"
+    elif extension.lower() == ".txt":
+        content_type = "text/plain"
+    elif extension.lower() == ".docx":
+        content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    else:
+        content_type = "application/octet-stream"
+
+    print("content type" , content_type)
 
     presigned_url = s3.generate_presigned_url(
         ClientMethod="put_object",
         Params={
             "Bucket": BUCKET,
             "Key": key,
-            "ContentType": "application/pdf",
+            "ContentType": content_type,
         },
         ExpiresIn=300,
         HttpMethod="PUT",
