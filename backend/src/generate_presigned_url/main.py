@@ -33,7 +33,7 @@ def lambda_handler(event, context):
     file_name_full = event["queryStringParameters"]["file_name"]
     file_name, extension = os.path.splitext(file_name_full)
 
-    exists = s3_key_exists(BUCKET, f"{user_id}/{file_name_full}/{file_name_full}")
+    exists = s3_key_exists(BUCKET, f"uploads/{user_id}/{file_name_full}/{file_name_full}")
 
     logger.info(
         {
@@ -48,9 +48,9 @@ def lambda_handler(event, context):
         suffix = shortuuid.ShortUUID().random(length=4)
         # Separate the filename and extension for CSV file
         base_name, extension = os.path.splitext(file_name_full)
-        key = f"{user_id}/{base_name}-{suffix}{extension}/{base_name}-{suffix}{extension}"
+        key = f"uploads/{user_id}/{base_name}-{suffix}{extension}/{base_name}-{suffix}{extension}"
     else:
-        key = f"{user_id}/{file_name}{extension}/{file_name}{extension}"
+        key = f"uploads/{user_id}/{file_name}{extension}/{file_name}{extension}"
 
     print("key after condition" , key)
 

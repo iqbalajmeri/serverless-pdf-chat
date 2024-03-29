@@ -26,8 +26,8 @@ def lambda_handler(event, context):
 
     user = event["requestContext"]["authorizer"]["claims"]["sub"]
 
-    s3.download_file(BUCKET, f"{user}/{file_name}/index.faiss", "/tmp/index.faiss")
-    s3.download_file(BUCKET, f"{user}/{file_name}/index.pkl", "/tmp/index.pkl")
+    s3.download_file(BUCKET, f"uploads/{user}/{file_name}/index.faiss", "/tmp/index.faiss")
+    s3.download_file(BUCKET, f"uploads/{user}/{file_name}/index.pkl", "/tmp/index.pkl")
 
     bedrock_runtime = boto3.client(
         service_name="bedrock-runtime",

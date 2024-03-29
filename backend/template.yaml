@@ -258,6 +258,25 @@ Resources:
             RestApiId: !Ref Api
             Path: /generate_presigned_url
             Method: GET
+  
+  FullGeneratePresignedUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/Full_generate_presigned_url/
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentBucket
+      Environment:
+        Variables:
+          BUCKET: !Ref DocumentBucket
+          REGION: !Sub ${AWS::Region}
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /Full_generate_presigned_url
+            Method: GET
 
   UploadTriggerFunction:
     Type: AWS::Serverless::Function
@@ -288,6 +307,8 @@ Resources:
             Filter:
               S3Key:
                 Rules:
+                  - Name: prefix
+                    Value: uploads/
                   - Name: suffix
                     Value: .pdf
         S3EventCsv:
@@ -299,6 +320,8 @@ Resources:
             Filter:
               S3Key:
                 Rules:
+                  - Name: prefix
+                    Value: uploads/
                   - Name: suffix
                     Value: .csv
         S3Eventtxt:
@@ -310,6 +333,8 @@ Resources:
             Filter:
               S3Key:
                 Rules:
+                  - Name: prefix
+                    Value: uploads/
                   - Name: suffix
                     Value: .txt
         S3Eventdocx:
@@ -321,8 +346,37 @@ Resources:
             Filter:
               S3Key:
                 Rules:
+                  - Name: prefix
+                    Value: uploads/
                   - Name: suffix
                     Value: .docx
+
+  FullUploadTriggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/Full_upload_trigger/
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DocumentTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MemoryTable
+        - S3ReadPolicy:
+            BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt EmbeddingQueue.QueueName
+      Environment:
+        Variables:
+          DOCUMENT_TABLE: !Ref DocumentTable
+          MEMORY_TABLE: !Ref MemoryTable
+          QUEUE: !GetAtt EmbeddingQueue.QueueName
+          BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /Full_upload_trigger
+            Method: GET
 
   MondayUploadTriggerFunction:
     Type: AWS::Serverless::Function
@@ -486,6 +540,36 @@ Resources:
           Properties:
             Queue: !GetAtt EmbeddingQueue.Arn
             BatchSize: 1
+
+  FullGenerateEmbeddingsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/Full_generate_embeddings/
+      Timeout: 180
+      MemorySize: 2048
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt EmbeddingQueue.QueueName
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DocumentTable
+        - Statement:
+            - Sid: "BedrockScopedAccess"
+              Effect: "Allow"
+              Action: "bedrock:InvokeModel"
+              Resource: "arn:aws:bedrock:*::foundation-model/amazon.titan-embed-text-v1"
+      Environment:
+        Variables:
+          DOCUMENT_TABLE: !Ref DocumentTable
+          BUCKET: !Ref DocumentBucket
+      Events:
+        Root:
+          Type: Api
+          Properties:
+            RestApiId: !Ref Api
+            Path: /Full_generate_embeddings
+            Method: GET
   
   MondayGenerateEmbeddingsFunction:
     Type: AWS::Serverless::Function
