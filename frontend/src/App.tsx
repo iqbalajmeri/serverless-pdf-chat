@@ -11,7 +11,7 @@ import mondaySdk from "monday-sdk-js";
 import "./App.css";
 import Loading from '../public/loading-dots.svg';
 const monday = mondaySdk();
-
+ 
 Amplify.configure({
   Auth: {
     userPoolId: import.meta.env.VITE_USER_POOL_ID,
@@ -35,24 +35,26 @@ Amplify.configure({
     ],
   },
 });
-
+ 
 let router;
-
+ 
 function App(): JSX.Element {
   const [context, setContext] = useState<any | null>(null);
-
+ 
   useEffect(() => {
+    const cloudfront = import.meta.env.VITE_CLOUDFRONT_DISTRIBUTION;
+    localStorage.setItem('cloudFrontUrl', cloudfront);
     monday.execute("valueCreatedForUser");
     monday.listen("context", (res) => {
       setContext(res.data);
     });
   }, []);
-
+ 
   if (context) {
     sessionStorage.setItem("boardId", context.boardId);
     const storedBoardId = sessionStorage.getItem("boardId");
     // console.log("s boardid", storedBoardId);
-
+ 
     return <Layout2 />;
   } else {
     router = createBrowserRouter([
@@ -72,8 +74,8 @@ function App(): JSX.Element {
       },
     ]);
   }
-
+ 
   return <RouterProvider router={router} />;
 }
-
+ 
 export default withAuthenticator(App, { hideSignUp: true });

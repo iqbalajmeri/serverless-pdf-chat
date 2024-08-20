@@ -24,6 +24,8 @@ function ChatBox({
   const [filename, setFilename] = useState('');
   const [conversationId, setConversationId] = useState('');
   const [documentId, setDocumentId] = useState('');
+  const [selectedModel, setSelectedModel] = useState('anthropic.claude-v2:1');
+ 
   // const [inputValue, setInputValue] = useState("");
   // console.log("msg status", messageStatus)
  
@@ -31,11 +33,12 @@ function ChatBox({
     if (conversation) {
       setConversationId(conversation.conversationid);
       setFilename(conversation.document.filename);
-      setDocumentId(conversation.document.documentid)
+      setDocumentId(conversation.document.documentid);
+      setSelectedModel(conversation.selectedModel)
     }
   }, [conversation, messageStatus]);
   return (
-    <div className="flex flex-col justify-between h-full overflow-y-auto col-span-8 p-5 border-l border-gray-200">
+    <div className="flex flex-col justify-between h-full overflow-y-auto col-span-8 p-5">
       <div className="pb-5">
         <div className="grid gap-5">
           {conversation.messages.map((message, i) => (
@@ -70,9 +73,9 @@ function ChatBox({
             onChange={handlePromptChange}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
-                submitMessage(conversationId, filename, prompt, documentId);
+                submitMessage(conversationId, filename, prompt, documentId,selectedModel);
               } else {
-                handleKeyPress(conversationId, filename, inputValue, documentId);
+                handleKeyPress(conversationId, filename, inputValue, documentId,selectedModel);
               }
             }}
             className={
@@ -88,7 +91,7 @@ function ChatBox({
             <button
               type="submit"
               className="text-gray-700 absolute right-2 bottom-2 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
-              onClick={() => submitMessage(conversationId, filename, prompt, documentId)}
+              onClick={() => submitMessage(conversationId, filename, prompt, documentId,selectedModel)}
             >
               <HiOutlinePaperAirplane className="w-6 h-6" />
             </button>

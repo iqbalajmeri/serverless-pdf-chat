@@ -1,26 +1,53 @@
 import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import Loading from "../../public/loading-dots.svg";
 import { Conversation } from "../common/types";
-
+import { useState } from "react";
+ 
 interface ChatMessagesProps {
   conversation: Conversation;
   messageStatus: string;
   handlePromptChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  handleModelIdChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   handleKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   prompt: string;
-  submitMessage: () => Promise<void>;
+  model_id:string;
+  submitMessage: (model: string) => Promise<void>;
+  selectedLanguage: string;
 }
-
+ 
 const ChatMessages: React.FC<ChatMessagesProps> = ({
   prompt,
+  model_id,
   conversation,
   messageStatus,
   submitMessage,
   handlePromptChange,
+  handleModelIdChange,
   handleKeyPress,
+  selectedLanguage,
+ 
+ 
 }) => {
+ 
+  const submitMessageWithLanguage = async () => {
+    await submitMessage(model_id);
+   
+  };
+ 
   return (
     <div className="flex flex-col justify-between h-full overflow-y-auto col-span-8 p-5 border-l border-gray-200">
+      <div className="flex justify-between items-center pb-5">
+        <h2 className="text-lg font-semibold">Chat</h2>
+        <select
+          value={model_id}
+          onChange={handleModelIdChange}
+          className="border border-gray-300 rounded-md p-2"
+        >
+          <option value="anthropic.claude-v2:1">anthropic.claude-v2:1</option>
+          <option value="anthropic.claude-v2">anthropic.claude-v2</option>
+          <option value="ai21.j2-mid-v1">ai21.j2-mid-v1</option>
+        </select>
+      </div>
       <div className="pb-5">
         <div className="grid gap-5">
           {conversation.messages.map((message, i) => (
@@ -28,8 +55,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
               className={`${
                 message.type === "ai"
                   ? "justify-self-start w-fit rounded border border-gray-100 px-5 py-3.5 text-gray-800"
-                  : "" +
-                    "justify-self-end w-fit bg-slate-100 rounded border border-gray-100 px-5 py-3.5 text-gray-800"
+                  : "justify-self-end w-fit bg-slate-100 rounded border border-gray-100 px-5 py-3.5 text-gray-800"
               }`}
               key={i}
             >
@@ -45,7 +71,6 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
           )}
         </div>
       </div>
-
       <div className="relative w-full">
         <div className="relative">
           <input
@@ -60,15 +85,13 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
                 ? "block w-full p-4 pl-4 text-sm text-gray-500 border border-gray-200 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
                 : "block w-full p-4 pl-4 text-sm text-gray-900 border border-gray-200 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
             }
-            placeholder={
-              "Ask " + conversation.document.filename + " anything..."
-            }
+            placeholder={"Ask " + conversation.document.filename + " anything..."}
           />
           {messageStatus === "idle" && (
             <button
               type="submit"
               className="text-gray-700 absolute right-2 bottom-2 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2"
-              onClick={submitMessage}
+              onClick={submitMessageWithLanguage}
             >
               <PaperAirplaneIcon className="w-6 h-6" />
             </button>
@@ -103,5 +126,5 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({
     </div>
   );
 };
-
+ 
 export default ChatMessages;

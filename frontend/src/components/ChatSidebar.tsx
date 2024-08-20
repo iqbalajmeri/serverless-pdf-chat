@@ -1,12 +1,13 @@
-import DocumentDetail from "./DocumentDetail";
-import { Conversation } from "../common/types";
-import { getDateTime } from "../common/utilities";
-import { Params } from "react-router-dom";
-import { FiTrash2 } from "react-icons/fi";
+import React, { useState } from 'react';
+import DocumentDetail from './DocumentDetail';
+import { Conversation } from '../common/types';
+import { getDateTime } from '../common/utilities';
+import { Params } from 'react-router-dom';
+import { FiTrash2 } from 'react-icons/fi';
 import {
   ChatBubbleLeftRightIcon,
   PlusCircleIcon,
-} from "@heroicons/react/24/outline";
+} from '@heroicons/react/24/outline';
  
 interface ChatSidebarProps {
   conversation: Conversation;
@@ -14,7 +15,9 @@ interface ChatSidebarProps {
   handleDeleteChatHistory: () => Promise<void>;
   addConversation: () => Promise<void>;
   switchConversation: (e: React.MouseEvent<HTMLButtonElement>) => void;
-  conversationListStatus: "idle" | "loading";
+  conversationListStatus: 'idle' | 'loading';
+  selectedLanguage: string;
+  onLanguageChange: (language: string) => void;
 }
  
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -24,19 +27,52 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   switchConversation,
   conversationListStatus,
   handleDeleteChatHistory,
+  selectedLanguage,
+  onLanguageChange,
 }) => {
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    onLanguageChange(e.target.value);
+  };
+ 
+  const isVideoFile = (filename: string) => {
+    const videoExtensions = ['mp4', 'mov', 'm4v'];
+    const fileExtension = filename.split('.').pop();
+    return videoExtensions.includes(fileExtension || '');
+  };
  
   return (
     <div className="col-span-4 h-full">
       <div className="bg-gray-100 p-5">
-{/*         <DocumentDetail {...conversation.document} /> */}
         <DocumentDetail
           {...conversation.document}
-          handleDeletFull={() => { }}
+          handleDeletFull={() => {}}
+          handleViewFile={() => {}}
         />
+        {isVideoFile(conversation.document.filename) && (
+          <div className="mt-4">
+            <label htmlFor="language" className="block text-sm font-medium text-gray-700">
+              Select Response Language
+            </label>
+            <select
+              id="language"
+              name="language"
+              value={selectedLanguage}
+              onChange={handleLanguageChange}
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+            >
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="ta">Tamil</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+             
+              {/* Add more languages as needed */}
+            </select>
+          </div>
+        )}
       </div>
       <div className="px-3 pt-3 pb-5">
-        {conversationListStatus === "idle" && (
+        {conversationListStatus === 'idle' && (
           <button
             onClick={addConversation}
             className="bg-gray-50 w-full inline-flex items-center px-4 py-2.5 border border-gray-100 rounded hover:bg-gray-200"
@@ -45,7 +81,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
             Start a new conversation
           </button>
         )}
-        {conversationListStatus === "loading" && (
+        {conversationListStatus === 'loading' && (
           <button
             disabled
             onClick={addConversation}
@@ -73,14 +109,11 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
         )}
         {conversation &&
           conversation.document.conversations.map((conversation, i) => (
-            <div key={i}
-            >
+            <div key={i}>
               {params.conversationid === conversation.conversationid && (
                 <div className="flex">
                   <button
-                    disabled={
-                      params.conversationid === conversation.conversationid
-                    }
+                    disabled={params.conversationid === conversation.conversationid}
                     className="bg-gray-500 text-white w-full inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded"
                   >
                     <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
@@ -101,9 +134,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   <button
                     id={conversation.conversationid}
                     onClick={switchConversation}
-                    disabled={
-                      params.conversationid === conversation.conversationid
-                    }
+                    disabled={params.conversationid === conversation.conversationid}
                     className="bg-gray-50 w-full inline-flex items-center mt-2 px-4 py-2.5 border border-gray-100 rounded hover:bg-gray-200"
                   >
                     <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />

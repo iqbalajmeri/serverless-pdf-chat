@@ -6,12 +6,13 @@ export interface Document {
   docstatus: string;
   created: string;
   pages: string;
+  s3_object_url: string;
   conversations: {
     conversationid: string;
     created: string;
   }[];
 }
-
+ 
 export interface Conversation {
   conversationid: string;
   document: Document;

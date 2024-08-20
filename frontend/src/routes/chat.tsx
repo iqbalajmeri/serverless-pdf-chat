@@ -14,10 +14,12 @@ const Document: React.FC = () => {
   const [conversation, setConversation] = useState < Conversation | null > (null);
   const [loading, setLoading] = React.useState < string > ("idle");
   const [messageStatus, setMessageStatus] = useState < string > ("idle");
+  const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [conversationListStatus, setConversationListStatus] = useState <
     "idle" | "loading"
     > ("idle");
   const [prompt, setPrompt] = useState("");
+  const [model_id, setModelId] = useState("anthropic.claude-v2:1");  
  
   const fetchData = async (conversationid = params.conversationid) => {
     setLoading("loading");
@@ -33,10 +35,16 @@ const Document: React.FC = () => {
   useEffect(() => {
     fetchData();
   }, []);
- 
+  const handleLanguageChange = (language: string) => {
+    setSelectedLanguage(language);
+  };
   const handlePromptChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPrompt(event.target.value);
   };
+  const handleModelIdChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setModelId(event.target.value);  // Update model ID state
+  };
+ 
  
   const addConversation = async () => {
     setConversationListStatus("loading");
@@ -90,6 +98,8 @@ const Document: React.FC = () => {
         body: {
           fileName: conversation?.document.filename,
           prompt: prompt,
+          language: selectedLanguage,
+          model_id: model_id,
         },
       }
     );
@@ -137,15 +147,20 @@ const Document: React.FC = () => {
             addConversation={addConversation}
             switchConversation={switchConversation}
             conversationListStatus={conversationListStatus}
+            selectedLanguage={selectedLanguage}
             handleDeleteChatHistory={handleDeleteChatHistory}
+            onLanguageChange={handleLanguageChange}
           />
           <ChatMessages
             prompt={prompt}
+            model_id={model_id}
             conversation={conversation}
             messageStatus={messageStatus}
             submitMessage={submitMessage}
             handleKeyPress={handleKeyPress}
+            selectedLanguage={selectedLanguage}
             handlePromptChange={handlePromptChange}
+            handleModelIdChange={handleModelIdChange}
           />
         </div>
       )}
