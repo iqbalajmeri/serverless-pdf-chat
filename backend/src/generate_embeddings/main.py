@@ -31,9 +31,18 @@ def set_doc_status(user_id, document_id, status):
 def lambda_handler(event, context):
     event_body = json.loads(event["Records"][0]["body"])
     document_id = event_body["documentid"]
-    user_id = event_body["user"]
     key = event_body["key"]
+    user_id = key.split("/")[1]
     file_name_full = key.split("/")[-1]
+    folder_path = '/'.join(key.split('/')[:-1])
+
+    print("event_body" , event_body)
+    print("context" , context)
+    print("document_id" , document_id)
+    print("user_id" , user_id)
+    print("key" , key)
+    print("file_name_full" , file_name_full)
+    print("folder_path" , folder_path)
 
     set_doc_status(user_id, document_id, "PROCESSING")
 
@@ -76,8 +85,8 @@ def lambda_handler(event, context):
     index_from_loader.vectorstore.save_local("/tmp")
 
     s3.upload_file(
-        "/tmp/index.faiss", BUCKET, f"{user_id}/{file_name_full}/index.faiss"
+        "/tmp/index.faiss", BUCKET, f"{folder_path}/index.faiss"
     )
-    s3.upload_file("/tmp/index.pkl", BUCKET, f"{user_id}/{file_name_full}/index.pkl")
+    s3.upload_file("/tmp/index.pkl", BUCKET, f"{folder_path}/index.pkl")
 
     set_doc_status(user_id, document_id, "READY")

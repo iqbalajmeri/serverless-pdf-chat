@@ -14,10 +14,15 @@ logger = Logger()
 
 @logger.inject_lambda_context(log_event=True)
 def lambda_handler(event, context):
+    print("event",event)
+    print("context" , context)
     user_id = event["requestContext"]["authorizer"]["claims"]["sub"]
+    print("user_id ", user_id)
 
     response = document_table.query(KeyConditionExpression=Key("userid").eq(user_id))
+    print("response", response)
     items = sorted(response["Items"], key=lambda item: item["created"], reverse=True)
+    print("items",items)
     for item in items:
         item["conversations"] = sorted(
             item["conversations"], key=lambda conv: conv["created"], reverse=True
