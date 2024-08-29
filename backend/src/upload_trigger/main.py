@@ -54,11 +54,11 @@ def lambda_handler(event, context):
         # s3.download_file(BUCKET, key, f"/tmp/{file_name}")
  
         s3_object_url = f"uploads/{user_id}/{file_name_encoded}/{file_name_encoded}"
- 
+        print("11",s3_object_url)
         # with open(f"/tmp/{file_name}", "rb") as f:
         #     reader = PyPDF2.PdfReader(f)
         #     pages = str(len(reader.pages))
-        response = s3.head_object(Bucket=BUCKET, Key=s3_object_url)
+        response = s3.head_object(Bucket=BUCKET, Key=key)
  
 # Extract the file size in bytes
         conversation_id = shortuuid.uuid()
