@@ -19,7 +19,7 @@ s3 = boto3.client(
 )
 logger = Logger()
  
-def check_filename(filename):
+'''def check_filename(filename):
     """
     Sanitize the filename to be S3-compatible by:
     - Replacing spaces with underscores
@@ -34,7 +34,7 @@ def check_filename(filename):
     # Ensure the filename does not start with a hyphen or underscore
     sanitized = re.sub(r'^[-_]+', '', sanitized)
    
-    return sanitized
+    return sanitized'''
  
 def s3_key_exists(bucket, key):
     try:
@@ -66,9 +66,11 @@ def lambda_handler(event, context):
         # Separate the filename and extension for CSV file
         base_name, extension = os.path.splitext(file_name_full)
         key = f"uploads/{user_id}/{base_name}-{suffix}{extension}/{base_name}-{suffix}{extension}"
+        print("12",key)
     else:
-        file_name1=check_filename(file_name)
-        key = f"uploads/{user_id}/{file_name1}{extension}/{file_name1}{extension}"
+        #file_name1=check_filename(file_name)
+        key = f"uploads/{user_id}/{file_name}{extension}/{file_name}{extension}"
+        print("14", key)
  
     print("key after condition" , key)
  
@@ -84,7 +86,8 @@ def lambda_handler(event, context):
     elif extension.lower() == ".mp4":
         content_type = "video/mp4"
     elif extension.lower() == ".m4v":
-        content_type = "video/x-m4v"
+        #content_type = "video/x-m4v"
+        content_type = "video/mp4"
     elif extension.lower() == ".mov":
         content_type = "video/quicktime"
     else:
