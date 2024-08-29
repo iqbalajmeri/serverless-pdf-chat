@@ -2,9 +2,9 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   serverless-pdf-chat
-
+ 
   SAM Template for serverless-pdf-chat
-
+ 
 Globals:
   Function:
     Runtime: python3.11
@@ -17,7 +17,7 @@ Globals:
         LOG_LEVEL: INFO
     Layers:
       - !Sub arn:aws:lambda:${AWS::Region}:017000801446:layer:AWSLambdaPowertoolsPythonV2-Arm64:51
-
+ 
 Parameters:
   Frontend:
     Default: local
@@ -27,12 +27,12 @@ Parameters:
       - amplify
   Repository:
     Type: String
-
+ 
 Conditions:
   DeployToAmplifyHosting: !Equals
     - !Ref Frontend
     - amplify
-
+ 
 Resources:
   DocumentBucket:
     Type: "AWS::S3::Bucket"
@@ -55,13 +55,13 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
-
+ 
   MyOAI:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: "OAI for accessing S3 content via CloudFront"
-
+ 
   MyCloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
@@ -90,7 +90,7 @@ Resources:
               Forward: none
             Headers:
               - Referer
-
+ 
   DocumentBucketPolicy:
     Type: "AWS::S3::BucketPolicy"
     Properties:
@@ -111,12 +111,12 @@ Resources:
                 "aws:SecureTransport": "false"
           - Sid: AllowCloudFrontAccess
             Effect: Allow
-            Principal: 
+            Principal:
               CanonicalUser: !GetAtt MyOAI.S3CanonicalUserId
             Action: "s3:GetObject"
             Resource:
               - !Sub "arn:aws:s3:::${DocumentBucket}/*"
-              
+             
   EmbeddingQueue:
     Type: AWS::SQS::Queue
     DeletionPolicy: Delete
@@ -124,7 +124,7 @@ Resources:
     Properties:
       VisibilityTimeout: 180
       MessageRetentionPeriod: 3600
-
+ 
   EmbeddingQueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
@@ -142,7 +142,7 @@ Resources:
             Condition:
               Bool:
                 aws:SecureTransport: false
-
+ 
   2Queue:
     Type: AWS::SQS::Queue
     DeletionPolicy: Delete
@@ -150,7 +150,7 @@ Resources:
     Properties:
       VisibilityTimeout: 180
       MessageRetentionPeriod: 3600
-
+ 
   2QueuePolicy:
     Type: AWS::SQS::QueuePolicy
     Properties:
@@ -168,7 +168,7 @@ Resources:
             Condition:
               Bool:
                 aws:SecureTransport: false
-
+ 
   DocumentTable:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Delete
@@ -185,7 +185,7 @@ Resources:
         - AttributeName: documentid
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
-
+ 
   MemoryTable:
     Type: AWS::DynamoDB::Table
     DeletionPolicy: Delete
@@ -198,7 +198,7 @@ Resources:
         - AttributeName: SessionId
           AttributeType: S
       BillingMode: PAY_PER_REQUEST
-
+ 
   CognitoUserPool:
     Type: AWS::Cognito::UserPool
     DeletionPolicy: Delete
@@ -217,14 +217,14 @@ Resources:
           RequireNumbers: true
           RequireSymbols: true
           RequireUppercase: true
-
+ 
   CognitoUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
     Properties:
       UserPoolId: !Ref CognitoUserPool
       ClientName: !Ref CognitoUserPool
       GenerateSecret: false
-
+ 
   Api:
     Type: AWS::Serverless::Api
     Properties:
@@ -239,7 +239,7 @@ Resources:
         AllowOrigin: "'*'"
         AllowHeaders: "'*'"
         AllowMethods: "'*'"
-
+ 
   GeneratePresignedUrlFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -258,7 +258,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /generate_presigned_url
             Method: GET
-  
+ 
   FullGeneratePresignedUrlFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -277,7 +277,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Full_generate_presigned_url
             Method: GET
-
+ 
   UploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -291,13 +291,55 @@ Resources:
             BucketName: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}*"
         - SQSSendMessagePolicy:
             QueueName: !GetAtt EmbeddingQueue.QueueName
+        - SQSSendMessagePolicy:    
+            QueueName: !GetAtt 2Queue.QueueName
       Environment:
         Variables:
           DOCUMENT_TABLE: !Ref DocumentTable
           MEMORY_TABLE: !Ref MemoryTable
-          QUEUE: !GetAtt EmbeddingQueue.QueueName
+          QUEUE1: !GetAtt EmbeddingQueue.QueueName
+          QUEUE2: !GetAtt 2Queue.QueueName
           BUCKET: !Sub "${AWS::StackName}-${AWS::Region}-${AWS::AccountId}"
       Events:
+        S3Eventmp4:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentBucket
+            Events:
+              - s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: uploads/
+                  - Name: suffix
+                    Value: .mp4
+        S3Eventmov:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentBucket
+            Events:
+              - s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: uploads/
+                  - Name: suffix
+                    Value: .mov
+        S3Eventm4v:
+          Type: S3
+          Properties:
+            Bucket: !Ref DocumentBucket
+            Events:
+              - s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: uploads/
+                  - Name: suffix
+                    Value: .m4v
         S3EventPdf:
           Type: S3
           Properties:
@@ -350,7 +392,7 @@ Resources:
                     Value: uploads/
                   - Name: suffix
                     Value: .docx
-
+ 
   FullUploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -377,7 +419,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Full_upload_trigger
             Method: GET
-
+ 
   MondayUploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -404,7 +446,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Monday_upload_trigger
             Method: POST
-  
+ 
   DeleteHistoryTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -425,7 +467,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Delete_History
             Method: Delete
-
+ 
   DeleteFullTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -451,7 +493,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Delete_Full
             Method: delete
-
+ 
   GetDocumentFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -472,7 +514,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /doc/{documentid}/{conversationid}
             Method: GET
-
+ 
   GetAllDocuments:
     Type: AWS::Serverless::Function
     Properties:
@@ -490,7 +532,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /doc
             Method: GET
-
+ 
   AddConversationFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -511,7 +553,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /doc/{documentid}
             Method: POST
-
+ 
   GenerateEmbeddingsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -540,7 +582,38 @@ Resources:
           Properties:
             Queue: !GetAtt EmbeddingQueue.Arn
             BatchSize: 1
-
+ 
+  GenerateTranscribeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/generate_transcribe/
+      Timeout: 180
+      MemorySize: 2048
+      Policies:
+        - SQSPollerPolicy:
+            QueueName: !GetAtt 2Queue.QueueName
+        - S3CrudPolicy:
+            BucketName: !Ref DocumentBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DocumentTable
+        - Statement:
+            - Sid: "TranscribeFullAccess"
+              Effect: "Allow"
+              Action: "transcribe:*"
+              Resource: "*"
+ 
+      Environment:
+        Variables:
+          DOCUMENT_TABLE: !Ref DocumentTable
+          BUCKET: !Ref DocumentBucket
+      Events:
+        EmbeddingQueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt 2Queue.Arn
+            BatchSize: 1
+ 
+ 
   FullGenerateEmbeddingsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -570,7 +643,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /Full_generate_embeddings
             Method: GET
-  
+ 
   MondayGenerateEmbeddingsFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -599,7 +672,7 @@ Resources:
           Properties:
             Queue: !GetAtt 2Queue.Arn
             BatchSize: 1
-
+ 
   GenerateResponseFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -616,12 +689,21 @@ Resources:
               Effect: "Allow"
               Action: "bedrock:InvokeModel"
               Resource:
+                - "arn:aws:bedrock:*::foundation-model/*"
+                - "arn:aws:bedrock:*::foundation-model/ai21.j2-mid-v1"
                 - "arn:aws:bedrock:*::foundation-model/anthropic.claude-v2"
                 - "arn:aws:bedrock:*::foundation-model/amazon.titan-embed-text-v1"
+                - "arn:aws:bedrock:*::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0"
+        - Statement:
+            - Sid: "TranslateFullAccess"
+              Effect: "Allow"
+              Action: "translate:*"
+              Resource: "*"
       Environment:
         Variables:
           MEMORY_TABLE: !Ref MemoryTable
           BUCKET: !Ref DocumentBucket
+          QUEUE1: !GetAtt EmbeddingQueue.QueueName
       Events:
         Root:
           Type: Api
@@ -629,7 +711,7 @@ Resources:
             RestApiId: !Ref Api
             Path: /{documentid}/{conversationid}
             Method: POST
-
+ 
   AmplifyApp:
     Type: AWS::Amplify::App
     Condition: DeployToAmplifyHosting
@@ -669,7 +751,7 @@ Resources:
           Value: !Ref CognitoUserPoolClient
         - Name: VITE_CLOUDFRONT_DISTRIBUTION
           Value: !GetAtt MyCloudFrontDistribution.DomainName
-
+ 
   AmplifyBranch:
     Type: AWS::Amplify::Branch
     Condition: DeployToAmplifyHosting
@@ -677,7 +759,7 @@ Resources:
       BranchName: new_feature_v1
       AppId: !GetAtt AmplifyApp.AppId
       EnableAutoBuild: true
-
+ 
 Outputs:
   CognitoUserPool:
     Value: !Ref CognitoUserPool
@@ -685,7 +767,3 @@ Outputs:
     Value: !Ref CognitoUserPoolClient
   ApiGatewayBaseUrl:
     Value: !Sub "https://${Api}.execute-api.${AWS::Region}.${AWS::URLSuffix}/dev/"
-  AmplifyAppId:
-    Value: !GetAtt AmplifyApp.AppId
-  CloudFrontDistributionDomain:
-    Value: !GetAtt MyCloudFrontDistribution.DomainName
