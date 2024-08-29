@@ -278,26 +278,6 @@ Resources:
             Path: /Full_generate_presigned_url
             Method: GET
  
-  # UploadYoutubeUrlFunction:
-  #   Type: AWS::Serverless::Function
-  #   Properties:
-  #     CodeUri: src/Upload_youtube_url/
-  #     Policies:
-  #       - S3CrudPolicy:
-  #           BucketName: !Ref DocumentBucket
-  #     Environment:
-  #       Variables:
-  #         BUCKET: !Ref DocumentBucket
-  #         REGION: !Sub ${AWS::Region}
-  #         YOUTUBE_API_KEY: AIzaSyC98NAXh5jysli5jSVY8zW9e1iIpOklXP4
-  #     Events:
-  #       Root:
-  #         Type: Api
-  #         Properties:
-  #           RestApiId: !Ref Api
-  #           Path: /Upload_youtube_url
-  #           Method: POST
- 
   UploadTriggerFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -723,6 +703,7 @@ Resources:
         Variables:
           MEMORY_TABLE: !Ref MemoryTable
           BUCKET: !Ref DocumentBucket
+          QUEUE1: !GetAtt EmbeddingQueue.QueueName
       Events:
         Root:
           Type: Api

@@ -3,11 +3,11 @@ import DocumentUploader from "../components/DocumentUploader";
 import DocumentList from "../components/DocumentList";
 import { useState } from "react";
 import { RxCross1 } from "react-icons/rx";
- 
+
 const Documents: React.FC = () => {
   const [fileToView, setFileToView] = useState('');
   const [showModal, setShowModal] = useState(false);
- 
+
   const handleViewFile = (url: string) => {
     const formattedUrl = url.replace(/ /g, '+');
     console.log("Viewing file with URL:", formattedUrl);
@@ -15,7 +15,7 @@ const Documents: React.FC = () => {
     setFileToView(googleDocsViewerUrl);
     setShowModal(true);
   };
- 
+
   return (
     <div className="relative">
       <DocumentUploader />
@@ -34,5 +34,5 @@ const Documents: React.FC = () => {
     </div>
   );
 };
- 
+
 export default Documents;
