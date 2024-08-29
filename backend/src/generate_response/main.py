@@ -96,7 +96,7 @@ def lambda_handler(event, context):
     list=['.mp4','.mov','.m4v']
     if ext in list:
         print("video")
-        template = """You are an AI assistant tasked with summarizing video transcripts and answering questions about them. Using the following transcript of a video, provide a detailed and relevant response to the human's input. Please respond directly to the user's input, using the information from the video transcript. Do not mention that you're summarizing a transcript or that you have limited context. Just provide the relevant information as if you're directly answering the user's question or request.
+        template = """You are an AI assistant tasked with summarizing video transcripts and answering questions about them. Using the following transcript of a video, provide a detailed and relevant response to the human's input. Please respond directly to the user's input, using the information from the video transcript. Do not mention that you're summarizing a transcript or that you have limited context. Just provide the relevant information as if you're directly answering the user's question or request. Do not mention the words like unfortunately or you do not have content.
  
         following is the video transcript:
         {context}
@@ -113,21 +113,21 @@ def lambda_handler(event, context):
             combine_docs_chain_kwargs={"prompt": custom_prompt}
         )
         res = qa({"question": human_input,"chat_history":chat_history})
-        if language.lower() != 'en':
-            print("translation")
-            translate = boto3.client('translate')
-            try:
-                translation = translate.translate_text(
-                    Text=res["answer"],
-                    SourceLanguageCode='en',
-                    TargetLanguageCode=language
-                )
-                translated_text = translation['TranslatedText']
-                res["answer"] = translated_text
-                print(res["answer"])
-                memory.save_context({"question": human_input}, {"answer": translated_text})
-            except Exception as e:
-                logger.error(f"Translation error: {str(e)}")
+        #if language.lower() != 'en':
+        print("translation")
+        translate = boto3.client('translate')
+        try:
+            translation = translate.translate_text(
+                Text=res["answer"],
+                SourceLanguageCode='en',
+                TargetLanguageCode=language
+            )
+            translated_text = translation['TranslatedText']
+            res["answer"] = translated_text
+            print(res["answer"])
+            memory.save_context({"question": human_input}, {"answer": translated_text})
+        except Exception as e:
+            logger.error(f"Translation error: {str(e)}")
     else:
         qa = ConversationalRetrievalChain.from_llm(
             llm=llm,
