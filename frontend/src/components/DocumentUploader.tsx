@@ -8,14 +8,12 @@ import {
   XCircleIcon,
   ArrowLeftCircleIcon,
   VideoCameraIcon,
-  LinkIcon, // Import LinkIcon for YouTube URL
 } from "@heroicons/react/24/outline";
  
 const DocumentUploader: React.FC = () => {
   const [inputStatus, setInputStatus] = useState<string>("idle");
   const [buttonStatus, setButtonStatus] = useState<string>("ready");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [youtubeUrl, setYoutubeUrl] = useState<string>(""); // New state for YouTube URL
  
   useEffect(() => {
     if (selectedFile) {
@@ -40,13 +38,6 @@ const DocumentUploader: React.FC = () => {
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     setSelectedFile(file || null);
-    setYoutubeUrl(""); // Clear YouTube URL when file is selected
-  };
- 
-  const handleYoutubeUrlChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setYoutubeUrl(event.target.value);
-    setSelectedFile(null); // Clear selected file when YouTube URL is entered
-    setInputStatus(event.target.value ? "valid" : "idle");
   };
  
   const uploadFile = async () => {
@@ -69,31 +60,18 @@ const DocumentUploader: React.FC = () => {
           setButtonStatus("success");
         });
       });
-    } else if (youtubeUrl) {
-      try {
-        const response = await API.post("serverless-pdf-chat", "/Upload_youtube_url", {
-          body: { url: youtubeUrl }
-        });
-        if (response.body.filename) {
-          setButtonStatus("success");
-        }
-      } catch (error) {
-        setButtonStatus("uploading");
-        // Handle error
-      }
     }
   };
  
   const resetInput = () => {
     setSelectedFile(null);
-    setYoutubeUrl("");
     setInputStatus("idle");
     setButtonStatus("ready");
   };
  
   return (
     <div>
-      <h2 className="text-2xl font-bold pb-4">Add document or YouTube URL</h2>
+      <h2 className="text-2xl font-bold pb-4">Add document or video</h2>
       {inputStatus === "idle" && (
         <div className="flex flex-col items-center justify-center w-full">
           <label
@@ -118,23 +96,6 @@ const DocumentUploader: React.FC = () => {
               accept=".pdf, .csv, .txt, .docx, .mp4, .mov, .m4v"
             />
           </label>
-          <div className="flex items-center w-full">
-            <input
-              type="text"
-              value={youtubeUrl}
-              onChange={handleYoutubeUrlChange}
-              placeholder="Enter YouTube URL"
-              className="flex-grow px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-violet-600"
-            />
-            <button
-              onClick={uploadFile}
-              type="button"
-              className="inline-flex items-center bg-violet-900 text-white border border-violet-900 focus:outline-none hover:bg-violet-700 focus:ring-4 focus:ring-violet-300 font-medium rounded-r-lg px-4 py-2 text-sm"
-            >
-              <LinkIcon className="w-5 h-5 mr-1.5" />
-              Upload URL
-            </button>
-          </div>
         </div>
       )}
       {inputStatus === "valid" && (
@@ -142,22 +103,14 @@ const DocumentUploader: React.FC = () => {
           <div className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
             <>
               <div className="flex flex-row items-center mb-5">
-                {selectedFile ? (
-                  selectedFile.type.startsWith("video/") ? (
-                    <VideoCameraIcon className="w-14 h-14 text-gray-400" />
-                  ) : (
-                    <DocumentIcon className="w-14 h-14 text-gray-400" />
-                  )
+                {selectedFile?.type.startsWith("video/") ? (
+                  <VideoCameraIcon className="w-14 h-14 text-gray-400" />
                 ) : (
-                  <LinkIcon className="w-14 h-14 text-gray-400" />
+                  <DocumentIcon className="w-14 h-14 text-gray-400" />
                 )}
                 <div className="flex flex-col ml-2">
-                  <p className="font-bold mb-1">{selectedFile?.name || "YouTube URL"}</p>
-                  <p>
-                    {selectedFile
-                      ? filesize(selectedFile.size).toString()
-                      : youtubeUrl}
-                  </p>
+                  <p className="font-bold mb-1">{selectedFile?.name}</p>
+                  <p>{selectedFile ? filesize(selectedFile.size).toString() : ""}</p>
                 </div>
               </div>
               <div className="flex flex-row items-center">
@@ -222,11 +175,11 @@ const DocumentUploader: React.FC = () => {
                         fill="#E5E7EB"
                       />
                       <path
-                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                        d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2611 1.69499 37.7926 4.19778 38.4297 6.62326C39.0668 9.04874 41.5303 10.4717 44.0498 10.1071C47.9928 9.47828 52.0179 9.46089 55.9787 10.0635C60.8705 10.7913 65.5553 12.5885 69.7341 15.3231C73.9129 18.0576 77.496 21.6904 80.2614 25.973C82.5346 29.3671 84.2283 33.1142 85.2854 37.0245C85.8946 39.373 87.5423 40.8562 89.9676 40.2191Z"
                         fill="currentColor"
                       />
                     </svg>
-                    Uploading...
+                    Uploading
                   </button>
                 )}
                 {buttonStatus === "success" && (
@@ -234,10 +187,10 @@ const DocumentUploader: React.FC = () => {
                     disabled
                     onClick={uploadFile}
                     type="button"
-                    className="inline-flex items-center bg-violet-900 text-white border border-gray-300 focus:outline-none hover:bg-violet-700 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg px-3 py-2 text-sm mr-2 mb-2 "
+                    className="inline-flex items-center bg-green-800 text-white border border-gray-300 focus:outline-none hover:bg-green-700 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg px-3 py-2 text-sm mr-2 mb-2 "
                   >
                     <CheckCircleIcon className="w-5 h-5 mr-1.5" />
-                    Upload successful!
+                    Uploaded
                   </button>
                 )}
               </div>
